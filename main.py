@@ -44,6 +44,7 @@ while True:
     json_ret_mail = list_mails_response.json()
     list_mails_update = json_ret_mail.get("emails")
 
+
     for mail in list_needs_update:
         for contact in list_mails_update:
             with smtplib.SMTP(smtp_server, port) as server:
