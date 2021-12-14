@@ -44,20 +44,32 @@ while True:
     json_ret_mail = list_mails_response.json()
     list_mails_update = json_ret_mail.get("emails")
 
+    tagged_messages = []
+    for contact in list_mails_update:
+        message = "Subject: Generic Alert VICERI\n\n\n"
+        for event in list_needs_update:
+            ev_str = f"Event: {event.get('event')}\nCulprit: {event.get('culprit')}\nTime: {event.get('time_str')}"
+            if event not in tagged_messages:
+                tagged_messages.append(event)
+            message += f"{ev_str}\n\n----------\n\n"
 
-    for mail in list_needs_update:
-        for contact in list_mails_update:
-            with smtplib.SMTP(smtp_server, port) as server:
-                server.ehlo()  # Can be omitted
-                server.starttls(context=context)
-                server.ehlo()  # Can be omitted
-                server.login(sender_email, password)
-                server.sendmail(sender_email,
-                                contact,
-                                f"Subject: Alerta Generica VICERI\n\n\nEvent: {mail.get('event')}\nCulprit: {mail.get('culprit')}\nTime: {mail.get('time_str')}")
-                status = sess.post(url_get_set_send, json={"id": mail.get('id')}).status_code
-                print(f"sent message to: {contact}")
-                print(f"update_status for event: {mail.get('id')}: {status}")
+        if len(tagged_messages) >= 1:
+            try:
+                with smtplib.SMTP(smtp_server, port) as server:
+                    server.ehlo()  # Can be omitted
+                    server.starttls(context=context)
+                    server.ehlo()  # Can be omitted
+                    server.login(sender_email, password)
+                    server.sendmail(sender_email, contact, message)
+
+                for event in tagged_messages:
+                    status = sess.post(url_get_set_send, json={"id": event.get('id')}).status_code
+                    print(f"sent message to: {contact}")
+                    print(f"update_status for event: {event.get('id')}: {status}")
+
+            except Exception as e:
+                continue
+
 
     print(f"sleeping for: {sleep_time}")
     time.sleep(sleep_time)
