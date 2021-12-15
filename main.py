@@ -4,6 +4,19 @@ import time
 import pwinput
 import requests
 
+import urllib.request
+
+
+def try_connect(host='http://google.com'):
+    try:
+        urllib.request.urlopen(host)  # Python 3.x
+        return True
+    except:
+        return False
+
+
+# test
+
 smtp_server = "smtp.gmail.com"
 port = 587  # For starttls
 sender_email = "viceri.redes3@gmail.com"
@@ -18,6 +31,10 @@ url_get_set_send = "http://localhost:5000/log/set_sent_status"
 url_get_mail = "http://localhost:5000/log_get_mails"
 
 while True:
+    if not try_connect():
+        time.sleep(10)
+        print("Unable to connect to google servers")
+        continue
 
     sess = requests.Session()
     credentials_json = {"name": "root", "password": "root"}
@@ -69,7 +86,6 @@ while True:
 
             except Exception as e:
                 continue
-
 
     print(f"sleeping for: {sleep_time}")
     time.sleep(sleep_time)
